@@ -89,3 +89,31 @@ footer {
     background-color: #1e4fd1;
     transform: scale(1.05);
 }
+.box {
+      padding: 20px;
+      margin: 20px;
+      background: #f4f4f4;
+      border-radius: 10px;
+    }
+
+    canvas {
+      background: white;
+      border: 1px solid #ccc;
+      width: 100%;
+      max-width: 600px;
+      height: 300px;
+    }
+
+    .row {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      padding: 15px;
+      background: white;
+      border-radius: 10px;
+      flex: 1;
+      min-width: 200px;
+    }

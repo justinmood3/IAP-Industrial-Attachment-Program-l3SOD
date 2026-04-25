@@ -1,19 +1,246 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <link rel="icon" href="2.png" type="image/png">
-        <title>CURRENT CONVERTER 2026</title>
-        <link rel="styleSheet" href="style.css">
-    </head>
-    <body>
-        <header>
-            <img src="1.png" controls width="50" height="50">
-            <h3>CURRENT CONVERTER 2026</h3>
-            <nav>
-               <a href="index.html" >Home</a>
-                <a href="converter.html">Converter</a>
-                <a href="details.html">Details</a>
-                <a href="history.html">history</a>
-                <a href="settings.html">settings</a>
-            </nav>
-        </header>
+<head>
+  <link rel="icon" href="2.png" type="image/png">
+  <title>CURRENCY DETAILS</title>
+  <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<header>
+  <img src="1.png" width="50" height="50">
+  <h3>CURRENCY DETAILS DASHBOARD</h3>
+
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="converter.html">Converter</a>
+    <a href="details.html">Details</a>
+    <a href="history.html">History</a>
+    <a href="settings.html">Settings</a>
+  </nav>
+</header>
+
+<!-- ===================== -->
+<!-- SELECT CURRENCY -->
+<!-- ===================== -->
+<div class="box">
+  <label>Select Currency:</label>
+  <select id="currencySelect" onchange="updateDetails()">
+    <option value="USD">USD</option>
+    <option value="EUR">EUR</option>
+    <option value="GBP">GBP</option>
+    <option value="RWF">RWF</option>
+    <option value="KES">KES</option>
+    <option value="UGX">UGX</option>
+    <option value="TZS">TZS</option>
+    <option value="NGN">NGN</option>
+    <option value="ZAR">ZAR</option>
+    <option value="JPY">JPY</option>
+  </select>
+
+  <h2 id="currencyTitle"></h2>
+  <p id="liveRate"></p>
+</div>
+
+<!-- ===================== -->
+<!-- DASHBOARD -->
+<!-- ===================== -->
+<div class="row">
+
+  <div class="card">
+    <h3>Demand Impact</h3>
+    <p id="demand"></p>
+  </div>
+
+  <div class="card">
+    <h3>Compared to USD</h3>
+    <p id="compare"></p>
+  </div>
+
+  <div class="card">
+    <h3>Trend Status</h3>
+    <p id="trend"></p>
+  </div>
+
+</div>
+
+<!-- ===================== -->
+<!-- CHART -->
+<!-- ===================== -->
+<div class="box">
+  <h3>Historical Trend (Mock Chart)</h3>
+  <canvas id="chart"></canvas>
+</div>
+
+<div class="box">
+  <h3>Currency Strength Comparison (vs USD)</h3>
+
+  <table border="1" width="100%" cellpadding="10">
+    <tr>
+      <th>Currency</th>
+      <th>Rate (vs 1 USD)</th>
+      <th>Strength Bar</th>
+    </tr>
+
+    <tbody id="compareTable"></tbody>
+  </table>
+</div>
+
+<script src="script.js"></script>
+
+<script>
+    // =====================
+// BASE CURRENCY DATA
+// =====================
+let baseRates = {
+  USD: 1,
+  EUR: 0.92,
+  GBP: 0.78,
+  RWF: 1300,
+  KES: 130,
+  UGX: 3800,
+  TZS: 2500,
+  NGN: 1500,
+  ZAR: 18,
+  JPY: 150 
+};
+
+// =====================
+// HISTORY-BASED DEMAND SYSTEM
+// =====================
+function getDemandFactor(currency) {
+  let history = JSON.parse(localStorage.getItem("history")) || [];
+
+  let count = history.filter(h =>
+    h.from === currency || h.to === currency
+  ).length;
+
+  let demand = 1 + (count * 0.03);
+
+  if (demand > 2.5) demand = 2.5;
+
+  return demand;
+}
+
+// =====================
+// MAIN UPDATE FUNCTION (FULL CONNECTED SYSTEM)
+// =====================
+function updateDetails() {
+  let currency = document.getElementById("currencySelect").value;
+
+  let demandFactor = getDemandFactor(currency);
+  let rate = baseRates[currency] * demandFactor;
+
+  document.getElementById("currencyTitle").innerText =
+    currency + " DETAILS";
+
+  document.getElementById("liveRate").innerText =
+    "Live Rate: 1 USD = " + rate.toFixed(2) + " " + currency;
+
+  document.getElementById("demand").innerText =
+    "App Usage Demand: " + demandFactor.toFixed(2);
+
+  document.getElementById("compare").innerText =
+    "1 USD ≈ " + rate.toFixed(2) + " " + currency;
+
+  document.getElementById("trend").innerText =
+    demandFactor > 1.3
+      ? "📈 Strong currency (high usage in app)"
+      : "📊 Stable / low usage currency";
+
+  drawChart(currency, rate);
+  updateComparisonTable();
+}
+
+// =====================
+// REAL MARKET-LIKE CHART (CONNECTED TO HISTORY)
+// =====================
+function drawChart(currency, rate) {
+  let canvas = document.getElementById("chart");
+  let ctx = canvas.getContext("2d");
+
+  canvas.width = 600;
+  canvas.height = 300;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  let history = JSON.parse(localStorage.getItem("history")) || [];
+
+  let usage = 0;
+  let data = [];
+
+  for (let i = 0; i < Math.max(10, history.length); i++) {
+    if (history[i] && (history[i].from === currency || history[i].to === currency)) {
+      usage++;
+    }
+
+    let value = rate + usage * 0.5 + (Math.random() * 2 - 1);
+    data.push(value);
+  }
+
+  let min = Math.min(...data);
+  let max = Math.max(...data);
+
+  function x(i) {
+    return i * 50 + 20;
+  }
+
+  function y(v) {
+    return 250 - ((v - min) / (max - min)) * 200;
+  }
+
+  ctx.beginPath();
+  ctx.moveTo(x(0), y(data[0]));
+
+  for (let i = 1; i < data.length; i++) {
+    ctx.lineTo(x(i), y(data[i]));
+  }
+
+  ctx.strokeStyle = "green";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+}
+
+// =====================
+// CURRENCY COMPARISON TABLE (LIVE CONNECTED)
+// =====================
+function updateComparisonTable() {
+  let table = document.getElementById("compareTable");
+  table.innerHTML = "";
+
+  let max = 4000;
+
+  Object.keys(baseRates).forEach(cur => {
+    let demand = getDemandFactor(cur);
+    let rate = baseRates[cur] * demand;
+
+    let width = (rate / max) * 100;
+
+    let color = rate > 1000 ? "green" : rate > 100 ? "orange" : "red";
+
+    table.innerHTML += `
+      <tr>
+        <td>${cur}</td>
+        <td>${rate.toFixed(2)}</td>
+        <td>
+          <div style="background:#ddd; width:100%; height:15px;">
+            <div style="width:${width}%; height:15px; background:${color};"></div>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+// =====================
+// AUTO LIVE SYSTEM
+// =====================
+setInterval(updateDetails, 4000);
+
+// INIT
+updateDetails();
+</script>
+</body>
+</html>
