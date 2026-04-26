@@ -29,6 +29,8 @@ img{
     margin-top: 10px;
     width: 100px;
     height: 100px;
+    border-radius: 50%;
+    border: none;
 }
 .div{
     background-color: rgb(122, 113, 113);
