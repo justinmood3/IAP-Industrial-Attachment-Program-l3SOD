@@ -24,7 +24,7 @@ function convert() {
 
   // validation
   if (isNaN(amount) || amount <= 0) {
-    alert("Enter valid amount");
+    alert(window.translateText ? window.translateText("alert_valid_amount") : "Enter a valid amount");
     return;
   }
 
@@ -43,7 +43,7 @@ function convert() {
   // timestamp
   let now = new Date().toLocaleString();
   document.getElementById("time").innerText =
-    "Updated: " + now;
+    (window.translateText ? window.translateText("time_updated") : "Updated: ") + now;
 
   // save to history
   saveHistory({
